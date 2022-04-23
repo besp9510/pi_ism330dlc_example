@@ -1,0 +1,100 @@
+# Raspberry Pi ISM330DLC Example
+#
+# Copyright (c) 2022 Benjamin Spencer
+# =============================================================================
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+# =============================================================================
+
+# Configuration:
+LIBDIR := -L/usr/local/lib/
+ 
+# Compiler:
+CC := gcc
+
+# Target binary:
+TARGET := test_ism330dlc
+
+# Root directories:
+ROOT := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+# Directories:
+SRCDIR     := $(ROOT)/src
+INCDIR     := $(ROOT)/include
+BUILDDIR   := $(ROOT)/obj
+TARGETDIR  := $(ROOT)/bin
+
+# Extensions:
+SRCEXT := c
+DEPEXT := d
+OBJEXT := o
+
+# Flags, Libraries and Includes:
+CFLAGS   := -Wall -O0 -g # C flags
+LDFLAGS  :=
+
+LIB     := -lpii2c -lpimicrosleephard -lpilwgpio
+INC     := -I$(INCDIR)
+INCDEP  := -I$(INCDIR)
+
+MACRO := $(DEBUG_LOG)
+
+# Find source and object files:
+SOURCES := $(shell find $(SRCDIR) -type f -name "*.$(SRCEXT)")
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,\
+	$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
+
+# -------------------------------------------------------------------------- #
+# Rules (DO NOT EDIT)
+# -------------------------------------------------------------------------- #
+
+# Default make:
+source: $(TARGET)
+
+# Make the directories
+directories:
+	@mkdir -p $(TARGETDIR)
+	@mkdir -p $(BUILDDIR)
+
+# Clean target and object files:
+clean:
+	@$(RM) -rf $(BUILDDIR)/* $(TARGETDIR)/*
+
+# Pull in dependency info for *existing* .o files:
+-include $(OBJECTS:.$(OBJEXT)=.$(DEPEXT))
+
+# Link:
+$(TARGET): $(OBJECTS)
+	@mkdir -p $(TARGETDIR)
+	$(CC) -o $(TARGETDIR)/$(TARGET) $(LIBDIR) $^ $(LIB) $(CFLAGS) $(LDFLAGS)
+
+# Compile:
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INC) -Wall $(MACRO) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(INCDEP) -MM $(SRCDIR)/$*.$(SRCEXT) > \
+		$(BUILDDIR)/$*.$(DEPEXT)
+	@cp -f $(BUILDDIR)/$*.$(DEPEXT) $(BUILDDIR)/$*.$(DEPEXT).tmp
+	@sed -e 's|.*:|$(BUILDDIR)/$*.$(OBJEXT):|' \
+		< $(BUILDDIR)/$*.$(DEPEXT).tmp > $(BUILDDIR)/$*.$(DEPEXT)
+	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILDDIR)/$*.$(DEPEXT).tmp \
+		| fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILDDIR)/$*.$(DEPEXT)
+	@rm -f $(BUILDDIR)/$*.$(DEPEXT).tmp
+
+# Non-file targets:
+.PHONY: all remake clean library
