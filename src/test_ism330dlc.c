@@ -82,7 +82,7 @@ int i2c_error_handler(int errno) {
     return 0;
 }
 
-int scan_for_device(uint8_t device_addr) {
+int scan_for_device(int device_addr) {
     // Address book passed to returned by the function:
     int address_book[127];
 
@@ -105,7 +105,7 @@ int scan_for_device(uint8_t device_addr) {
 }
 
 
-int verify_device_id(uint8_t device_addr) {
+int verify_device_id(int device_addr) {
     // The returned device ID will be stored into an array that we pass
     // to the read function:
     int device_id[1];
