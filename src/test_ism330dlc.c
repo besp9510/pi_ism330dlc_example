@@ -77,7 +77,7 @@ int i2c_error_handler(int errno) {
             break;
         default:
             break;
-    };
+    }
 
     return 0;
 }
@@ -90,14 +90,14 @@ int scan_for_device(int device_addr) {
 
     if ((ret = scan_bus_i2c(address_book)) < 0) {
         i2c_error_handler(ret);
-    };
+    }
 
     // Check and see if LIS3MDL was detected on the bus (if not then we can't
     // really continue with the test):
     if (address_book[device_addr] != 1) {
         printf("Device was not detected at 0x%X\n", device_addr);
         return -1;
-    };
+    }
 
     printf("Device was detected at 0x%X\n", device_addr);
 
@@ -116,7 +116,7 @@ int verify_device_id(int device_addr) {
 
     if ((ret = read_i2c(device_addr, WHO_AM_I, device_id, 1)) < 0) {
         i2c_error_handler(ret);
-    };
+    }
 
     // Compare returned device ID and error out if it does not match expected
     // (If it doesn't match I would suspect something has gone horribly wrong)
@@ -124,7 +124,7 @@ int verify_device_id(int device_addr) {
         printf("Device identified as 0x%X but does not match expected 0x%X\n",
                device_id[0], WHO_AM_I_DEFAULT);
         return -1;
-    };
+    }
 
     printf("Device identified as 0x%X and matches expected 0x%X\n",
             device_id[0], WHO_AM_I_DEFAULT);
@@ -150,7 +150,7 @@ int configure_device(int device_addr, int reg_addr, int *configs,
     if ((ret = read_i2c(device_addr, reg_addr, reg_value, 1)) < 0) {
         i2c_error_handler(ret);
         return ret;
-    };
+    }
 
     printf("Register 0x%X currently reads 0x%X\n", reg_addr, reg_value[0]);
 
@@ -172,7 +172,7 @@ int configure_device(int device_addr, int reg_addr, int *configs,
     if ((ret = write_i2c(device_addr, reg_addr, reg_value, 0x01)) < 0) {
         i2c_error_handler(ret);
         return ret;
-    };
+    }
 
     printf("Device configured\n");
 
@@ -208,7 +208,7 @@ int get_accel(int device_addr, int sensitivity, float *accel_data) {
         scale = 244;
     } else if (sensitivity == (ACCEL_FS_16_G)) {
         scale = 488;
-    };
+    }
 
     // Get raw acceleration data:
     while (attempt) {
@@ -218,8 +218,8 @@ int get_accel(int device_addr, int sensitivity, float *accel_data) {
         } else {
             // Break the loop:
             attempt = 0;
-        };
-    };
+        }
+    }
 
     // Get raw acceleration data:
     while (attempt) {
@@ -237,9 +237,9 @@ int get_accel(int device_addr, int sensitivity, float *accel_data) {
             if ((accel_x_raw != 0) && (accel_y_raw != 0) && (accel_z_raw != 0)) {
                 // Break the loop:
                 attempt = 0;
-            };
-        };
-    };
+            }
+        }
+    }
 
     printf("accel_x_raw = %d\n", accel_x_raw);
     printf("accel_y_raw = %d\n", accel_y_raw);
@@ -292,7 +292,7 @@ int get_gyro(int device_addr, int sensitivity, float *gyro_data) {
         scale = 35000 / 5;
     } else if (sensitivity == (GYRO_FS_2000_DPS)) {
         scale = 70000 / 5;
-    };
+    }
 
     printf("scale = %d\n", scale);
 
@@ -312,9 +312,9 @@ int get_gyro(int device_addr, int sensitivity, float *gyro_data) {
             if ((gyro_x_raw != 0) && (gyro_y_raw != 0) && (gyro_z_raw != 0)) {
                 // Break the loop:
                 attempt = 0;
-            };
-        };
-    };
+            }
+        }
+    }
 
     printf("gyro_x_raw = %d\n", gyro_x_raw);
     printf("gyro_y_raw = %d\n", gyro_y_raw);
@@ -390,18 +390,18 @@ int main(void) {
     if ((ret = config_i2c(sda_pin, scl_pin, speed_grade)) < 0 ) {
         printf("config_i2c() failed to configure and returned %d\n", ret);
         return ret;
-    };
+    }
 
     // Check to see if the device is present prior to interacting with device:
     if ((ret = scan_for_device(ism330dlc_addr)) < 0) {
         return -1;
-    };
+    }
 
     // Check to see if the device ID matches what's expected prior to
     // continuing with the test:
     if ((ret = verify_device_id(ism330dlc_addr)) < 0) {
         return -1;
-    };
+    }
 
     // Configure FIFO:
     // - Bypass mode. FIFO disabled
@@ -409,7 +409,7 @@ int main(void) {
 
     if ((ret = configure_device(ism330dlc_addr, FIFO_CTRL5, config, 1)) < 0) {
         return ret;
-    };
+    }
 
     // Configure accelerometer:
     // - 56 Hz sampling rate
@@ -418,7 +418,7 @@ int main(void) {
 
     if ((ret = configure_device(ism330dlc_addr, CTRL1_XL, config, 2)) < 0) {
         return ret;
-    };
+    }
 
     // Configure gyroscope:
     // - 56 Hz sampling rate
@@ -427,7 +427,7 @@ int main(void) {
 
     if ((ret = configure_device(ism330dlc_addr, CTRL2_G, config, 2)) < 0) {
         return ret;
-    };
+    }
 
     sleep(1);
 
@@ -438,12 +438,12 @@ int main(void) {
         // Get accelerometer data:
         if ((ret = get_accel(ism330dlc_addr, ACCEL_FS_2_G, accel_data)) < 0) {
             return ret;
-        };
+        }
 
         // Get gyroscope data:
         if ((ret = get_gyro(ism330dlc_addr, GYRO_FS_250_DPS, gyro_data)) < 0) {
             return ret;
-        };
+        }
 
         // Grab the time:
         clock_gettime(CLOCK_MONOTONIC, &sample_time);
@@ -461,7 +461,7 @@ int main(void) {
         gyro_z[i] = gyro_data[2];
 
         microsleep_hard(0.05e6);
-    };
+    }
 
     printf("Finished test\n");
     printf("Writing results to test_ism330dlc.csv\n");
@@ -476,7 +476,7 @@ int main(void) {
         fprintf(fpt,"%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
                 sample_second[i] + sample_nano_second[i] * 1e-9, accel_x[i],
                 accel_y[i], accel_z[i], gyro_x[i], gyro_y[i], gyro_z[i]);
-    };
+    }
 
     // Done writing so let's close it:
     fclose(fpt);

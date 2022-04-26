@@ -38,6 +38,7 @@ SRCDIR     := $(ROOT)/src
 INCDIR     := $(ROOT)/include
 BUILDDIR   := $(ROOT)/obj
 TARGETDIR  := $(ROOT)/bin
+SRCSUBDIR  := $(shell find $(SRCDIR) -type d)	
 
 # Extensions:
 SRCEXT := c
@@ -49,8 +50,8 @@ CFLAGS   := -Wall -O0 -g # C flags
 LDFLAGS  :=
 
 LIB     := -lpii2c -lpimicrosleephard -lpilwgpio
-INC     := -I$(INCDIR)
-INCDEP  := -I$(INCDIR)
+INC     := -I$(INCDIR) $(addprefix -I,$(SRCSUBDIR))
+INCDEP  := -I$(INCDIR) $(addprefix -I,$(SRCSUBDIR))
 
 MACRO := $(DEBUG_LOG)
 
